@@ -13,11 +13,12 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
-const context = await esbuild.context({
+// Build main.ts from src/ to main.js at root
+const mainContext = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["main.ts", "styles.css"],
+	entryPoints: ["src/main.ts"],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -40,14 +41,28 @@ const context = await esbuild.context({
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	minify: prod,
-	outdir: '.',
+	outfile: "main.js",
+	allowOverwrite: true
+});
+
+// Build styles.css from root to root
+const stylesContext = await esbuild.context({
+	entryPoints: ["styles.css"],
+	bundle: true,
+	logLevel: "info",
+	minify: prod,
+	outfile: "styles.css",
 	allowOverwrite: true
 });
 
 if (prod) {
-	await context.rebuild();
+	await mainContext.rebuild();
+	await stylesContext.rebuild();
+	await mainContext.dispose();
+	await stylesContext.dispose();
 	process.exit(0);
 } else {
-	await context.watch();
+	await mainContext.watch();
+	await stylesContext.watch();
 	fs.writeFileSync(path.resolve('.', '.hotreload'), '')
 }
