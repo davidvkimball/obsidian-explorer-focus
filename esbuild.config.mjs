@@ -40,14 +40,14 @@ const context = await esbuild.context({
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	minify: prod,
-	outdir: 'dist'
+	outdir: '.',
+	allowOverwrite: true
 });
 
 if (prod) {
 	await context.rebuild();
-	fs.cpSync('./manifest.json',path.resolve('dist', 'manifest.json'))
 	process.exit(0);
 } else {
 	await context.watch();
-	fs.writeFileSync(path.resolve('dist', '.hotreload'), '')
+	fs.writeFileSync(path.resolve('.', '.hotreload'), '')
 }
