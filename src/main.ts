@@ -1,9 +1,10 @@
 import { App, Plugin, PluginManifest } from "obsidian";
 import langs, { Lang } from '../lang';
-import { SimpleFocusSettings, DEFAULT_SETTINGS, HIDDEN_CLASS } from './types';
+import { SimpleFocusSettings, DEFAULT_SETTINGS } from './types';
 import { SimpleFocusSettingTab } from './ui/settings-tab';
 import { registerCommands } from './commands';
-import { setupMutationObserver, createFileExplorerIcon, insertFileExplorerIcon } from './utils/file-explorer';
+import { createFileExplorerIcon, insertFileExplorerIcon } from './utils/file-explorer';
+import { patchFileExplorer as patchFileExplorerUtil, getFileExplorer as getFileExplorerUtil, getAllFileExplorers } from './utils/file-explorer-patch';
 import { getFocusPath } from './utils/focus';
 
 export class SimpleFocusPlugin extends Plugin {
@@ -12,7 +13,6 @@ export class SimpleFocusPlugin extends Plugin {
 	lang: Lang;
 	settings!: SimpleFocusSettings;
 	fileExplorerIcon: HTMLElement | null;
-	mutationObserver: MutationObserver | null;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -22,7 +22,6 @@ export class SimpleFocusPlugin extends Plugin {
 		this.isFocus = false;
 		this.focusedPath = null;
 		this.fileExplorerIcon = null;
-		this.mutationObserver = null;
 	}
 
 	async onload() {
@@ -36,7 +35,13 @@ export class SimpleFocusPlugin extends Plugin {
 			this.addFileExplorerIcon();
 		}
 
-		setupMutationObserver(this);
+		this.app.workspace.onLayoutReady(() => {
+			this.patchAllFileExplorers();
+		});
+
+		this.app.workspace.on("layout-change", () => {
+			this.patchAllFileExplorers();
+		});
 	}
 
 	async loadSettings() {
@@ -59,35 +64,40 @@ export class SimpleFocusPlugin extends Plugin {
 		this.isFocus = true;
 		this.focusedPath = path;
 		
-		// Hide elements that don't match the focused path
-		this.applyFocusHiding(path);
-		
 		// Update icon if it exists
 		this.updateFileExplorerIcon();
+		
+		// Trigger file explorer refresh on all file explorer instances
+		const fileExplorers = getAllFileExplorers(this);
+		fileExplorers.forEach(fileExplorer => {
+			if (fileExplorer?.requestSort) {
+				fileExplorer.requestSort();
+			}
+		});
+	}
+
+	patchAllFileExplorers(): void {
+		// Patch the prototype (once) and mark all instances
+		patchFileExplorerUtil(this);
+		const fileExplorers = getAllFileExplorers(this);
+		fileExplorers.forEach(fileExplorer => {
+			fileExplorer.fileExplorerPlusPatched = true;
+		});
 	}
 
 	exitFocus() {
 		this.isFocus = false;
 		this.focusedPath = null;
 
-		const unFocusEls = document.querySelectorAll<HTMLElement>(
-			`.${HIDDEN_CLASS}`
-		);
-
-		unFocusEls.forEach((unFocusEl) => {
-			unFocusEl.removeClass(HIDDEN_CLASS);
-		});
-
 		// Update icon if it exists
 		this.updateFileExplorerIcon();
-	}
-
-	applyFocusHiding(focusPath: string) {
-		const hiddenEls = document.querySelectorAll<HTMLElement>(
-			`.tree-item:not(:has([data-path="${focusPath}"]),:has([data-path^="${focusPath}/"]))`
-		);
-		hiddenEls.forEach((hiddenEl) => {
-			hiddenEl.addClass(HIDDEN_CLASS);
+		
+		// Trigger file explorer refresh on all file explorer instances
+		const fileExplorers = getAllFileExplorers(this);
+		fileExplorers.forEach(fileExplorer => {
+			if (fileExplorer?.requestSort) {
+				fileExplorer.requestSort();
+			}
 		});
 	}
 
@@ -196,10 +206,6 @@ export class SimpleFocusPlugin extends Plugin {
 	}
 
 	onunload() {
-		if (this.mutationObserver) {
-			this.mutationObserver.disconnect();
-			this.mutationObserver = null;
-		}
 		if (this.fileExplorerIcon) {
 			this.fileExplorerIcon.remove();
 			this.fileExplorerIcon = null;

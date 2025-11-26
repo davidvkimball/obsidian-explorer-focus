@@ -12,5 +12,3 @@ export const DEFAULT_SETTINGS: SimpleFocusSettings = {
 	customFolderPath: ''
 };
 
-export const HIDDEN_CLASS = "plugin-simple-focus-hidden";
-
