@@ -15,6 +15,8 @@ const lang = {
   focusLevelDesc: "Determines what to focus when using the toggle command or file explorer icon. Right-click menu always focuses the clicked file/folder.",
   customFolderPath: "Custom folder path",
   customFolderPathDesc: "Enter a folder path (folder/subfolder). This folder will be focused regardless of which file is open.",
+  hideAncestorFolders: "Hide ancestral indents",
+  hideAncestorFoldersDesc: "When enabled, hides parent folder indentation when focusing, making the focused folder appear at root level.",
 }
 
 export default lang

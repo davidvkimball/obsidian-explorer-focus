@@ -33,12 +33,13 @@ type PathVirtualElement = {
 	};
 };
 
-type FileExplorerView = View & {
+export type FileExplorerView = View & {
 	requestSort(): void;
 	fileExplorerPlusPatched?: boolean;
 	fileItems: {
 		[key: string]: PathVirtualElement;
 	};
+	containerEl: HTMLElement;
 };
 
 type GetSortedFolderItemsFunction = (folder: TAbstractFile) => PathVirtualElement[];
@@ -65,9 +66,10 @@ export function patchFileExplorer(plugin: SimpleFocusPlugin): void {
 
 						// Apply focus hiding if focus mode is active
 						if (plugin.isFocus && plugin.focusedPath) {
+							const focusedPath = plugin.focusedPath!;
+							
 							sortedChildren = sortedChildren.filter((vEl) => {
 								const filePath = vEl.file.path;
-								const focusedPath = plugin.focusedPath!;
 								
 								// Show items that match the focused path exactly
 								if (filePath === focusedPath) {

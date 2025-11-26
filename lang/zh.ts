@@ -15,6 +15,8 @@ const lang = {
   focusLevelDesc: "确定使用切换命令或文件浏览器图标时要聚焦的内容。右键菜单始终聚焦单击的文件/文件夹。",
   customFolderPath: "自定义文件夹路径",
   customFolderPathDesc: "输入文件夹路径（文件夹/子文件夹）。无论打开哪个文件，都会聚焦此文件夹。",
+  hideAncestorFolders: "隐藏祖先缩进",
+  hideAncestorFoldersDesc: "启用后，聚焦时隐藏父文件夹缩进，使聚焦的文件夹显示在根级别。",
 }
 
 export default lang

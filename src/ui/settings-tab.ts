@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import { SimpleFocusPlugin } from "../main";
+import { getAllFileExplorers } from "../utils/file-explorer-patch";
 
 export class SimpleFocusSettingTab extends PluginSettingTab {
 	plugin: SimpleFocusPlugin;
@@ -46,6 +47,15 @@ export class SimpleFocusSettingTab extends PluginSettingTab {
 				.onChange(async (value: string) => {
 					this.plugin.settings.focusLevel = value as 'file' | 'parent' | 'grandparent' | 'greatgrandparent' | 'custom';
 					await this.plugin.saveSettings();
+					// Refresh file explorer if in focus mode
+					if (this.plugin.isFocus) {
+						const fileExplorers = getAllFileExplorers(this.plugin);
+						fileExplorers.forEach((fileExplorer) => {
+							if (fileExplorer?.requestSort) {
+								fileExplorer.requestSort();
+							}
+						});
+					}
 					this.display(); // Refresh to show/hide custom folder input
 				}));
 
@@ -62,6 +72,7 @@ export class SimpleFocusSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
 	}
 }
 

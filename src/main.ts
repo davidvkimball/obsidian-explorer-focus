@@ -4,7 +4,7 @@ import { SimpleFocusSettings, DEFAULT_SETTINGS } from './types';
 import { SimpleFocusSettingTab } from './ui/settings-tab';
 import { registerCommands } from './commands';
 import { createFileExplorerIcon, insertFileExplorerIcon } from './utils/file-explorer';
-import { patchFileExplorer as patchFileExplorerUtil, getFileExplorer as getFileExplorerUtil, getAllFileExplorers } from './utils/file-explorer-patch';
+import { patchFileExplorer as patchFileExplorerUtil, getFileExplorer as getFileExplorerUtil, getAllFileExplorers, FileExplorerView } from './utils/file-explorer-patch';
 import { getFocusPath } from './utils/focus';
 
 export class SimpleFocusPlugin extends Plugin {
@@ -37,10 +37,12 @@ export class SimpleFocusPlugin extends Plugin {
 
 		this.app.workspace.onLayoutReady(() => {
 			this.patchAllFileExplorers();
+			this.updateFocusModeClasses();
 		});
 
 		this.app.workspace.on("layout-change", () => {
 			this.patchAllFileExplorers();
+			this.updateFocusModeClasses();
 		});
 	}
 
@@ -67,6 +69,9 @@ export class SimpleFocusPlugin extends Plugin {
 		// Update icon if it exists
 		this.updateFileExplorerIcon();
 		
+		// Update CSS classes
+		this.updateFocusModeClasses();
+		
 		// Trigger file explorer refresh on all file explorer instances
 		const fileExplorers = getAllFileExplorers(this);
 		fileExplorers.forEach(fileExplorer => {
@@ -92,6 +97,9 @@ export class SimpleFocusPlugin extends Plugin {
 		// Update icon if it exists
 		this.updateFileExplorerIcon();
 		
+		// Update CSS classes
+		this.updateFocusModeClasses();
+		
 		// Trigger file explorer refresh on all file explorer instances
 		const fileExplorers = getAllFileExplorers(this);
 		fileExplorers.forEach(fileExplorer => {
@@ -100,6 +108,19 @@ export class SimpleFocusPlugin extends Plugin {
 			}
 		});
 	}
+
+	updateFocusModeClasses(): void {
+		const fileExplorers = getAllFileExplorers(this);
+		fileExplorers.forEach(fileExplorer => {
+			const containerEl = fileExplorer.containerEl;
+			if (this.isFocus) {
+				containerEl.addClass("simple-focus-mode");
+			} else {
+				containerEl.removeClass("simple-focus-mode");
+			}
+		});
+	}
+
 
 	addFileExplorerIcon() {
 		const addIconToFileExplorer = () => {
