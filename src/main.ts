@@ -3,7 +3,7 @@ import langs, { Lang } from '../lang';
 import { SimpleFocusSettings, DEFAULT_SETTINGS } from './types';
 import { SimpleFocusSettingTab } from './ui/settings-tab';
 import { registerCommands } from './commands';
-import { createFileExplorerIcon, insertFileExplorerIcon } from './utils/file-explorer';
+import { createFileExplorerIcon, insertFileExplorerIcon, findNavButtonsContainer } from './utils/file-explorer';
 import { patchFileExplorer as patchFileExplorerUtil, getFileExplorer as getFileExplorerUtil, getAllFileExplorers, FileExplorerView } from './utils/file-explorer-patch';
 import { getFocusPath } from './utils/focus';
 
@@ -123,6 +123,26 @@ export class SimpleFocusPlugin extends Plugin {
 
 
 	addFileExplorerIcon() {
+		const handleIconClick = () => {
+			if (this.isFocus) {
+				this.exitFocus();
+			} else {
+				if (this.settings.focusLevel === 'custom') {
+					// For custom folder, use the custom path directly
+					if (this.settings.customFolderPath) {
+						this.enterFocus(this.settings.customFolderPath);
+					}
+				} else {
+					// For other levels, need the current file
+					const file = this.app.workspace.getActiveFile();
+					if (file?.path) {
+						const focusPath = getFocusPath(file.path, this.settings.focusLevel, this.settings);
+						this.enterFocus(focusPath);
+					}
+				}
+			}
+		};
+
 		const addIconToFileExplorer = () => {
 			const fileExplorerLeaves = this.app.workspace.getLeavesOfType('file-explorer');
 			if (fileExplorerLeaves.length === 0) {
@@ -130,19 +150,19 @@ export class SimpleFocusPlugin extends Plugin {
 			}
 
 			const fileExplorerView = fileExplorerLeaves[0].view.containerEl;
-			const navButtonsContainer = fileExplorerView.querySelector('.nav-buttons-container') as HTMLElement;
+			const navButtonsContainer = findNavButtonsContainer(fileExplorerView);
 			
 			if (!navButtonsContainer) {
 				return;
 			}
 
-			// Check if icon already exists
+			// Check if icon already exists in this container
 			if (this.fileExplorerIcon && navButtonsContainer.contains(this.fileExplorerIcon)) {
 				return;
 			}
 
 			// Remove old icon if it exists elsewhere
-			if (this.fileExplorerIcon) {
+			if (this.fileExplorerIcon && this.fileExplorerIcon.parentElement) {
 				this.fileExplorerIcon.remove();
 			}
 
@@ -150,25 +170,33 @@ export class SimpleFocusPlugin extends Plugin {
 			if (!this.fileExplorerIcon) {
 				this.fileExplorerIcon = createFileExplorerIcon(this);
 
-				// Register click handler using registerDomEvent for proper cleanup
-				this.registerDomEvent(this.fileExplorerIcon, 'click', () => {
-					if (this.isFocus) {
-						this.exitFocus();
-					} else {
-						if (this.settings.focusLevel === 'custom') {
-							// For custom folder, use the custom path directly
-							if (this.settings.customFolderPath) {
-								this.enterFocus(this.settings.customFolderPath);
-							}
-						} else {
-							// For other levels, need the current file
-							const file = this.app.workspace.getActiveFile();
-							if (file?.path) {
-								const focusPath = getFocusPath(file.path, this.settings.focusLevel, this.settings);
-								this.enterFocus(focusPath);
-							}
-						}
+				// Ensure the icon is touch-friendly on mobile
+				this.fileExplorerIcon.style.cursor = 'pointer';
+				this.fileExplorerIcon.style.touchAction = 'manipulation';
+
+				// Use a unified handler that works for both click and touch
+				// On mobile, touch events typically trigger click, but we handle both to be safe
+				let touchHandled = false;
+				
+				this.registerDomEvent(this.fileExplorerIcon, 'touchstart', (evt) => {
+					touchHandled = true;
+					evt.preventDefault();
+					evt.stopPropagation();
+					handleIconClick();
+					// Reset flag after a short delay
+					setTimeout(() => { touchHandled = false; }, 300);
+				});
+
+				this.registerDomEvent(this.fileExplorerIcon, 'click', (evt) => {
+					// If touchstart already handled it, skip click to avoid double-firing
+					if (touchHandled) {
+						evt.preventDefault();
+						evt.stopPropagation();
+						return;
 					}
+					evt.preventDefault();
+					evt.stopPropagation();
+					handleIconClick();
 				});
 			}
 			
@@ -210,7 +238,7 @@ export class SimpleFocusPlugin extends Plugin {
 			const fileExplorerLeaves = this.app.workspace.getLeavesOfType('file-explorer');
 			if (fileExplorerLeaves.length > 0) {
 				const fileExplorerView = fileExplorerLeaves[0].view.containerEl;
-				const navButtonsContainer = fileExplorerView.querySelector('.nav-buttons-container') as HTMLElement;
+				const navButtonsContainer = findNavButtonsContainer(fileExplorerView);
 				
 				if (navButtonsContainer) {
 					insertFileExplorerIcon(this.fileExplorerIcon, navButtonsContainer);

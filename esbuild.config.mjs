@@ -45,24 +45,34 @@ const mainContext = await esbuild.context({
 	allowOverwrite: true
 });
 
-// Build styles.css from root to root
-const stylesContext = await esbuild.context({
-	entryPoints: ["styles.css"],
-	bundle: true,
-	logLevel: "info",
-	minify: prod,
-	outfile: "styles.css",
-	allowOverwrite: true
-});
+// Build styles.css from root to root (only if file exists)
+const stylesPath = path.resolve('.', 'styles.css');
+const hasStyles = fs.existsSync(stylesPath);
+
+let stylesContext = null;
+if (hasStyles) {
+	stylesContext = await esbuild.context({
+		entryPoints: ["styles.css"],
+		bundle: true,
+		logLevel: "info",
+		minify: prod,
+		outfile: "styles.css",
+		allowOverwrite: true
+	});
+}
 
 if (prod) {
 	await mainContext.rebuild();
-	await stylesContext.rebuild();
+	if (stylesContext) {
+		await stylesContext.rebuild();
+		await stylesContext.dispose();
+	}
 	await mainContext.dispose();
-	await stylesContext.dispose();
 	process.exit(0);
 } else {
 	await mainContext.watch();
-	await stylesContext.watch();
+	if (stylesContext) {
+		await stylesContext.watch();
+	}
 	fs.writeFileSync(path.resolve('.', '.hotreload'), '')
 }
