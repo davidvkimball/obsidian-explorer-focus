@@ -79,6 +79,14 @@ export class SimpleFocusPlugin extends Plugin {
 				fileExplorer.requestSort();
 			}
 		});
+		
+		// Force refresh by manually updating visibility (especially important on mobile)
+		// Use setTimeout to ensure DOM is ready after requestSort
+		setTimeout(() => {
+			fileExplorers.forEach(fileExplorer => {
+				this.refreshFileExplorerVisibility(fileExplorer);
+			});
+		}, 0);
 	}
 
 	patchAllFileExplorers(): void {
@@ -105,6 +113,65 @@ export class SimpleFocusPlugin extends Plugin {
 		fileExplorers.forEach(fileExplorer => {
 			if (fileExplorer?.requestSort) {
 				fileExplorer.requestSort();
+			}
+		});
+		
+		// Force refresh by manually updating visibility (especially important on mobile)
+		// Use setTimeout to ensure DOM is ready after requestSort
+		setTimeout(() => {
+			fileExplorers.forEach(fileExplorer => {
+				this.refreshFileExplorerVisibility(fileExplorer);
+			});
+		}, 0);
+	}
+
+	refreshFileExplorerVisibility(fileExplorer: FileExplorerView): void {
+		if (!fileExplorer?.fileItems) {
+			return;
+		}
+
+		// Manually update visibility of all file items in the DOM
+		Object.values(fileExplorer.fileItems).forEach((vEl) => {
+			if (!vEl || !vEl.el) {
+				return;
+			}
+
+			const filePath = vEl.file.path;
+			let shouldShow = true;
+
+			if (this.isFocus && this.focusedPath) {
+				const focusedPath = this.focusedPath;
+				
+				// Show items that match the focused path exactly
+				if (filePath === focusedPath) {
+					shouldShow = true;
+				}
+				// Show items that are children of the focused path
+				else if (filePath.startsWith(focusedPath + "/")) {
+					shouldShow = true;
+				}
+				// Show items that are ancestors of the focused path (parent chain)
+				else if (focusedPath.startsWith(filePath + "/")) {
+					shouldShow = true;
+				}
+				// Hide everything else
+				else {
+					shouldShow = false;
+				}
+			}
+
+			// Update the hidden state in the virtual element
+			if (vEl.info) {
+				vEl.info.hidden = !shouldShow;
+			}
+
+			// Also directly update the DOM element visibility
+			if (shouldShow) {
+				vEl.el.style.display = '';
+				vEl.el.removeAttribute('data-simple-focus-hidden');
+			} else {
+				vEl.el.style.display = 'none';
+				vEl.el.setAttribute('data-simple-focus-hidden', 'true');
 			}
 		});
 	}
@@ -170,8 +237,8 @@ export class SimpleFocusPlugin extends Plugin {
 			if (!this.fileExplorerIcon) {
 				this.fileExplorerIcon = createFileExplorerIcon(this);
 
-				// Ensure the icon is touch-friendly on mobile
-				this.fileExplorerIcon.style.cursor = 'pointer';
+				// Don't set cursor - let it inherit from .clickable-icon class (cursor: var(--cursor))
+				// This matches other file explorer icons which use the CSS variable
 				this.fileExplorerIcon.style.touchAction = 'manipulation';
 
 				// Use a unified handler that works for both click and touch
@@ -244,6 +311,12 @@ export class SimpleFocusPlugin extends Plugin {
 					insertFileExplorerIcon(this.fileExplorerIcon, navButtonsContainer);
 				}
 			}
+		}
+
+		// Don't set cursor - let it inherit from .clickable-icon class (cursor: var(--cursor))
+		// This matches other file explorer icons which use the CSS variable
+		if (this.fileExplorerIcon.style.cursor) {
+			this.fileExplorerIcon.style.removeProperty('cursor');
 		}
 
 		// Toggle is-active class based on focus state
