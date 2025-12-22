@@ -1,4 +1,4 @@
-import { TAbstractFile, TFolder } from "obsidian";
+import { TAbstractFile, View } from "obsidian";
 
 // Needed to support monkey-patching of the file explorer
 

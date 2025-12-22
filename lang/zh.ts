@@ -3,7 +3,7 @@ const lang = {
   enterFocus : "专注",
   exitFocus: "退出专注",
   toggleFocus: "切换专注",
-  settings: "简单专注设置",
+  settings: "资源管理器专注设置",
   showRightClickMenu: "显示右键菜单选项",
   showFileExplorerIcon: "显示文件浏览器图标",
   focusLevel: "命令专注级别",

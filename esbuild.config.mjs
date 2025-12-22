@@ -1,8 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from "builtin-modules";
-import fs from "fs";
-import path from "path";
+import { builtinModules } from 'node:module';
+import { existsSync } from "fs";
 
 const banner =
 `/*
@@ -11,14 +10,28 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-const prod = (process.argv[2] === "production");
+// Detect entry point: prefer src/main.ts, fallback to main.ts
+const hasSrcMain = existsSync("src/main.ts");
+const hasRootMain = existsSync("main.ts");
 
-// Build main.ts from src/ to main.js at root
-const mainContext = await esbuild.context({
+if (hasSrcMain && hasRootMain) {
+  console.warn("WARNING: Both src/main.ts and main.ts exist. Using src/main.ts as entry point.");
+  console.warn("Consider removing one to avoid confusion.");
+}
+if (!hasSrcMain && !hasRootMain) {
+  console.error("ERROR: Neither src/main.ts nor main.ts found!");
+  process.exit(1);
+}
+
+// Set entry point based on what exists
+const entryPoint = hasSrcMain ? "src/main.ts" : "main.ts";
+
+// Always build to root for simplicity
+const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["src/main.ts"],
+	entryPoints: [entryPoint],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -34,45 +47,40 @@ const mainContext = await esbuild.context({
 		"@lezer/common",
 		"@lezer/highlight",
 		"@lezer/lr",
-		...builtins],
+		...builtinModules],
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
-	sourcemap: prod ? false : "inline",
+	sourcemap: "inline",
 	treeShaking: true,
-	minify: prod,
 	outfile: "main.js",
-	allowOverwrite: true
+	minify: false,
 });
 
-// Build styles.css from root to root (only if file exists)
-const stylesPath = path.resolve('.', 'styles.css');
-const hasStyles = fs.existsSync(stylesPath);
+// Check if this is a one-time build or watch mode
+// Check for "build" or "production" argument - supports both patterns
+const args = process.argv.slice(2);
+const isOneTimeBuild = args.includes("build") || args.includes("production");
 
-let stylesContext = null;
-if (hasStyles) {
-	stylesContext = await esbuild.context({
-		entryPoints: ["styles.css"],
-		bundle: true,
-		logLevel: "info",
-		minify: prod,
-		outfile: "styles.css",
-		allowOverwrite: true
-	});
-}
-
-if (prod) {
-	await mainContext.rebuild();
-	if (stylesContext) {
-		await stylesContext.rebuild();
-		await stylesContext.dispose();
+if (isOneTimeBuild) {
+	// Production build: build once and exit
+	await context.rebuild();
+	console.log("\n✓ Build complete!");
+	console.log("📦 Release files:");
+	console.log("   - main.js");
+	if (existsSync("manifest.json")) {
+		console.log("   - manifest.json");
 	}
-	await mainContext.dispose();
+	if (existsSync("styles.css")) {
+		console.log("   - styles.css");
+	}
+	console.log("\n💡 Upload these files to GitHub releases\n");
+	await context.dispose();
 	process.exit(0);
 } else {
-	await mainContext.watch();
-	if (stylesContext) {
-		await stylesContext.watch();
-	}
-	fs.writeFileSync(path.resolve('.', '.hotreload'), '')
+	// Development mode: watch for changes
+	console.log("\n✓ Development build running in watch mode");
+	console.log("📝 Building to main.js in root");
+	console.log("💡 For production builds, run: npm run build\n");
+	await context.watch();
 }

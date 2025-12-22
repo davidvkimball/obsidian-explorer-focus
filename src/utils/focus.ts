@@ -1,9 +1,9 @@
-import { SimpleFocusSettings } from '../types';
+import { ExplorerFocusSettings } from '../types';
 
 export function getFocusPath(
 	path: string,
 	level: 'file' | 'parent' | 'grandparent' | 'greatgrandparent' | 'custom',
-	settings: SimpleFocusSettings
+	settings: ExplorerFocusSettings
 ): string {
 	if (level === 'custom') {
 		// Use the custom folder path from settings, regardless of current file

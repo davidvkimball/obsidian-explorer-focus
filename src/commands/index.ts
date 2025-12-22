@@ -1,11 +1,10 @@
-import { Plugin } from "obsidian";
-import { SimpleFocusPlugin } from "../main";
+import { ExplorerFocusPlugin } from "../main";
 import { getFocusPath } from "../utils/focus";
 
-export function registerCommands(plugin: SimpleFocusPlugin): void {
+export function registerCommands(plugin: ExplorerFocusPlugin): void {
 	// Toggle focus command
 	plugin.addCommand({
-		id: "simple-focus-toggle",
+		id: "toggle",
 		name: plugin.lang.toggleFocus,
 		callback: () => {
 			if (plugin.isFocus) {

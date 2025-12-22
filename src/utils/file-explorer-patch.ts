@@ -1,6 +1,6 @@
 import { View, TAbstractFile } from "obsidian";
 import { around } from "monkey-around";
-import { SimpleFocusPlugin } from "../main";
+import { ExplorerFocusPlugin } from "../main";
 import "../types.d";
 
 // Type definitions from module augmentation
@@ -47,7 +47,7 @@ type GetSortedFolderItemsFunction = (folder: TAbstractFile) => PathVirtualElemen
 // Global flag to track if prototype has been patched
 let prototypePatched = false;
 
-export function patchFileExplorer(plugin: SimpleFocusPlugin): void {
+export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 	const fileExplorer = getFileExplorer(plugin);
 
 	if (!fileExplorer) {
@@ -66,7 +66,7 @@ export function patchFileExplorer(plugin: SimpleFocusPlugin): void {
 
 						// Apply focus hiding if focus mode is active
 						if (plugin.isFocus && plugin.focusedPath) {
-							const focusedPath = plugin.focusedPath!;
+							const focusedPath = plugin.focusedPath;
 							
 							sortedChildren = sortedChildren.filter((vEl) => {
 								const filePath = vEl.file.path;
@@ -114,12 +114,12 @@ export function patchFileExplorer(plugin: SimpleFocusPlugin): void {
 	fileExplorer.fileExplorerPlusPatched = true;
 }
 
-export function getFileExplorer(plugin: SimpleFocusPlugin): FileExplorerView | undefined {
+export function getFileExplorer(plugin: ExplorerFocusPlugin): FileExplorerView | undefined {
 	const fileExplorerContainer = plugin.app.workspace.getLeavesOfType("file-explorer")?.first();
 	return fileExplorerContainer?.view as FileExplorerView;
 }
 
-export function getAllFileExplorers(plugin: SimpleFocusPlugin): FileExplorerView[] {
+export function getAllFileExplorers(plugin: ExplorerFocusPlugin): FileExplorerView[] {
 	const fileExplorerLeaves = plugin.app.workspace.getLeavesOfType("file-explorer");
 	return fileExplorerLeaves.map(leaf => leaf.view as FileExplorerView);
 }

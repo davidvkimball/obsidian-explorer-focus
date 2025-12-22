@@ -1,10 +1,11 @@
 {
-	"id": "simple-focus",
-	"name": "Simple Focus",
-	"version": "0.0.9",
+	"id": "explorer-focus",
+	"name": "Explorer Focus",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "Allows you to focus on a specific file or folder",
-	"author": "linqing",
-	"authorUrl": "https://github.com/linqing24",
+	"description": "Focus on a specific file or folder in the file explorer",
+	"author": "David V. Kimball",
+	"authorUrl": "https://davidvkimball.com",
+	"fundingUrl": "https://patreon.com/davidvkimball",
 	"isDesktopOnly": false
 }

@@ -1,17 +1,17 @@
 import { App, Plugin, PluginManifest } from "obsidian";
 import langs, { Lang } from '../lang';
-import { SimpleFocusSettings, DEFAULT_SETTINGS } from './types';
-import { SimpleFocusSettingTab } from './ui/settings-tab';
+import { ExplorerFocusSettings, DEFAULT_SETTINGS } from './types';
+import { ExplorerFocusSettingTab } from './ui/settings-tab';
 import { registerCommands } from './commands';
 import { createFileExplorerIcon, insertFileExplorerIcon, findNavButtonsContainer } from './utils/file-explorer';
-import { patchFileExplorer as patchFileExplorerUtil, getFileExplorer as getFileExplorerUtil, getAllFileExplorers, FileExplorerView } from './utils/file-explorer-patch';
+import { patchFileExplorer as patchFileExplorerUtil, getAllFileExplorers, FileExplorerView } from './utils/file-explorer-patch';
 import { getFocusPath } from './utils/focus';
 
-export class SimpleFocusPlugin extends Plugin {
+export class ExplorerFocusPlugin extends Plugin {
 	isFocus: boolean;
 	focusedPath: string | null;
 	lang: Lang;
-	settings!: SimpleFocusSettings;
+	settings!: ExplorerFocusSettings;
 	fileExplorerIcon: HTMLElement | null;
 
 	constructor(app: App, manifest: PluginManifest) {
@@ -27,7 +27,7 @@ export class SimpleFocusPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		this.addSettingTab(new SimpleFocusSettingTab(this.app, this));
+		this.addSettingTab(new ExplorerFocusSettingTab(this.app, this));
 
 		registerCommands(this);
 
@@ -47,7 +47,8 @@ export class SimpleFocusPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const loadedData = await this.loadData() as Partial<ExplorerFocusSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
 	}
 
 	async saveSettings() {
@@ -167,11 +168,11 @@ export class SimpleFocusPlugin extends Plugin {
 
 			// Also directly update the DOM element visibility
 			if (shouldShow) {
-				vEl.el.style.display = '';
-				vEl.el.removeAttribute('data-simple-focus-hidden');
+				vEl.el.setCssProps({ display: '' });
+				vEl.el.removeAttribute('data-explorer-focus-hidden');
 			} else {
-				vEl.el.style.display = 'none';
-				vEl.el.setAttribute('data-simple-focus-hidden', 'true');
+				vEl.el.setCssProps({ display: 'none' });
+				vEl.el.setAttribute('data-explorer-focus-hidden', 'true');
 			}
 		});
 	}
@@ -181,9 +182,9 @@ export class SimpleFocusPlugin extends Plugin {
 		fileExplorers.forEach(fileExplorer => {
 			const containerEl = fileExplorer.containerEl;
 			if (this.isFocus) {
-				containerEl.addClass("simple-focus-mode");
+				containerEl.addClass("explorer-focus-mode");
 			} else {
-				containerEl.removeClass("simple-focus-mode");
+				containerEl.removeClass("explorer-focus-mode");
 			}
 		});
 	}
@@ -239,7 +240,7 @@ export class SimpleFocusPlugin extends Plugin {
 
 				// Don't set cursor - let it inherit from .clickable-icon class (cursor: var(--cursor))
 				// This matches other file explorer icons which use the CSS variable
-				this.fileExplorerIcon.style.touchAction = 'manipulation';
+				this.fileExplorerIcon.setCssProps({ touchAction: 'manipulation' });
 
 				// Use a unified handler that works for both click and touch
 				// On mobile, touch events typically trigger click, but we handle both to be safe
@@ -335,5 +336,5 @@ export class SimpleFocusPlugin extends Plugin {
 	}
 }
 
-export default SimpleFocusPlugin;
+export default ExplorerFocusPlugin;
 

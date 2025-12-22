@@ -1,4 +1,4 @@
-import { SimpleFocusPlugin } from "../main";
+import { ExplorerFocusPlugin } from "../main";
 
 /**
  * Find or create the navigation buttons container in the file explorer view.
@@ -7,16 +7,16 @@ import { SimpleFocusPlugin } from "../main";
  */
 export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElement | null {
 	// Try desktop selector first
-	let container = fileExplorerView.querySelector('.nav-buttons-container') as HTMLElement;
+	let container = fileExplorerView.querySelector('.nav-buttons-container');
 	if (container) {
-		return container;
+		return container as HTMLElement;
 	}
 
 	// Try alternative selectors for mobile
 	// Mobile might have the buttons in a different structure
-	container = fileExplorerView.querySelector('.nav-header-button-container') as HTMLElement;
+	container = fileExplorerView.querySelector('.nav-header-button-container');
 	if (container) {
-		return container;
+		return container as HTMLElement;
 	}
 
 	// Try finding by looking for existing nav-action-button elements
@@ -27,7 +27,7 @@ export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElem
 		if (parent && (parent.classList.contains('nav-buttons-container') || 
 		               parent.classList.contains('nav-header-button-container') ||
 		               Array.from(parent.children).some(el => el.classList.contains('nav-action-button')))) {
-			return parent as HTMLElement;
+			return parent;
 		}
 	}
 
@@ -49,16 +49,18 @@ export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElem
 	const navFilesContainer = fileExplorerView.querySelector('.nav-files-container') as HTMLElement;
 	if (navFilesContainer) {
 		// Check if we already created a mobile button container
-		let mobileButtonContainer = fileExplorerView.querySelector('.simple-focus-mobile-buttons') as HTMLElement;
+		let mobileButtonContainer = fileExplorerView.querySelector('.explorer-focus-mobile-buttons') as HTMLElement;
 		if (!mobileButtonContainer) {
 			// Create a mobile button container
 			mobileButtonContainer = document.createElement('div');
-			mobileButtonContainer.className = 'nav-buttons-container simple-focus-mobile-buttons';
-			mobileButtonContainer.style.display = 'flex';
-			mobileButtonContainer.style.alignItems = 'center';
-			mobileButtonContainer.style.gap = '4px';
-			mobileButtonContainer.style.padding = '8px';
-			mobileButtonContainer.style.borderBottom = '1px solid var(--background-modifier-border)';
+			mobileButtonContainer.className = 'nav-buttons-container explorer-focus-mobile-buttons';
+			mobileButtonContainer.setCssProps({
+				display: 'flex',
+				alignItems: 'center',
+				gap: '4px',
+				padding: '8px',
+				borderBottom: '1px solid var(--background-modifier-border)'
+			});
 			
 			// Insert it before the nav-files-container
 			navFilesContainer.parentElement?.insertBefore(mobileButtonContainer, navFilesContainer);
@@ -67,15 +69,17 @@ export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElem
 	}
 
 	// Last resort: create a container at the top of the view
-	let topContainer = fileExplorerView.querySelector('.simple-focus-mobile-buttons') as HTMLElement;
+	let topContainer = fileExplorerView.querySelector('.explorer-focus-mobile-buttons') as HTMLElement;
 	if (!topContainer) {
 		topContainer = document.createElement('div');
-		topContainer.className = 'nav-buttons-container simple-focus-mobile-buttons';
-		topContainer.style.display = 'flex';
-		topContainer.style.alignItems = 'center';
-		topContainer.style.gap = '4px';
-		topContainer.style.padding = '8px';
-		topContainer.style.borderBottom = '1px solid var(--background-modifier-border)';
+		topContainer.className = 'nav-buttons-container explorer-focus-mobile-buttons';
+		topContainer.setCssProps({
+			display: 'flex',
+			alignItems: 'center',
+			gap: '4px',
+			padding: '8px',
+			borderBottom: '1px solid var(--background-modifier-border)'
+		});
 		
 		// Insert at the beginning of the view
 		fileExplorerView.insertBefore(topContainer, fileExplorerView.firstChild);
@@ -83,7 +87,7 @@ export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElem
 	return topContainer;
 }
 
-export function createFileExplorerIcon(plugin: SimpleFocusPlugin): HTMLElement {
+export function createFileExplorerIcon(plugin: ExplorerFocusPlugin): HTMLElement {
 	const icon = document.createElement('div');
 	icon.className = 'clickable-icon nav-action-button';
 	icon.setAttribute('aria-label', plugin.lang.toggleFocus);

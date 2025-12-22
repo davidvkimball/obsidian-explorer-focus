@@ -1,4 +1,4 @@
-export interface SimpleFocusSettings {
+export interface ExplorerFocusSettings {
 	showRightClickMenu: boolean;
 	showFileExplorerIcon: boolean;
 	focusLevel: 'file' | 'parent' | 'grandparent' | 'greatgrandparent' | 'custom';
@@ -6,7 +6,7 @@ export interface SimpleFocusSettings {
 	hideAncestorFolders: boolean;
 }
 
-export const DEFAULT_SETTINGS: SimpleFocusSettings = {
+export const DEFAULT_SETTINGS: ExplorerFocusSettings = {
 	showRightClickMenu: true,
 	showFileExplorerIcon: true,
 	focusLevel: 'parent',

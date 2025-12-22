@@ -21,7 +21,5 @@ data.json
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
-dist/
-pnpm-lock.yaml
-.reference/
-.reference2/
+# Reference materials
+.ref/
