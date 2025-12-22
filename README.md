@@ -2,6 +2,10 @@
 
 Focus on a specific file or folder in the file explorer.
 
+## Made for Vault CMS
+
+Part of the [Vault CMS](https://github.com/davidvkimball/vault-cms) project.
+
 ## Features
 
 Explorer Focus allows you to reduce visual clutter in the file explorer by focusing on specific files or folders. When in focus mode, only the focused item and its related files (children, ancestors) are visible.
@@ -91,4 +95,3 @@ npm run dev
 ## Credits
 
 - Based on [Simple Focus](https://github.com/linqing24/obsidian-simple-focus) by linqing24
-- Settings UI patterns inspired by [UI Tweaker](https://github.com/kepano/obsidian-ui-tweaker)
