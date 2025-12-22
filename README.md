@@ -1,6 +1,6 @@
-# Explorer Focus
+# Explorer Focus for Obsidian
 
-Focus on a specific file or folder in the file explorer.
+Focus on a specific file or folder in the file explorer. Fork of the [Simple Focus plugin](https://github.com/linqing24/obsidian-simple-focus) plugin.
 
 ## Made for Vault CMS
 
@@ -91,7 +91,3 @@ npm run build
 ```bash
 npm run dev
 ```
-
-## Credits
-
-- Based on [Simple Focus](https://github.com/linqing24/obsidian-simple-focus) by linqing24
