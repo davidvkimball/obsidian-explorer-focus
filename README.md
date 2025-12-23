@@ -78,6 +78,10 @@ This creates a focused view that shows only what's relevant to your current work
 - Works on both desktop and mobile
 - Compatible with Obsidian 0.15.0 and later
 
+## Credits
+
+Uses the virtual element patching approach (instead of DOM manipulation) inspired by [File Explorer++](https://github.com/kelszo/obsidian-file-explorer-plus).
+
 ## Development
 
 This project uses TypeScript and follows Obsidian plugin best practices.
