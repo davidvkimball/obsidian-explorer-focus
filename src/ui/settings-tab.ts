@@ -85,6 +85,33 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 			});
 		}
 
+		generalGroup.addSetting((setting) => {
+			setting
+				.setName(this.plugin.lang.hideAncestorFolders)
+				.setDesc(this.plugin.lang.hideAncestorFoldersDesc)
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.hideAncestorFolders)
+					.onChange(async (value) => {
+						this.plugin.settings.hideAncestorFolders = value;
+						await this.plugin.saveSettings();
+						// Refresh file explorer if in focus mode
+						if (this.plugin.isFocus) {
+							const fileExplorers = getAllFileExplorers(this.plugin);
+							fileExplorers.forEach((fileExplorer) => {
+								if (fileExplorer?.requestSort) {
+									fileExplorer.requestSort();
+								}
+							});
+							// Force refresh visibility after a short delay
+							setTimeout(() => {
+								fileExplorers.forEach((fileExplorer) => {
+									this.plugin.refreshFileExplorerVisibility(fileExplorer);
+								});
+							}, 0);
+						}
+					}));
+		});
+
 	}
 }
 

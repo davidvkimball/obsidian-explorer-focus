@@ -1,4 +1,4 @@
-import { View, TAbstractFile } from "obsidian";
+import { View, TAbstractFile, TFolder } from "obsidian";
 import { around } from "monkey-around";
 import { ExplorerFocusPlugin } from "../main";
 import "../types.d";
@@ -64,41 +64,15 @@ export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 					return function (this: FileExplorerView, folder: TAbstractFile): PathVirtualElement[] {
 						let sortedChildren: PathVirtualElement[] = old.call(this, folder);
 
-						// Apply focus hiding if focus mode is active
-						if (plugin.isFocus && plugin.focusedPath) {
-							const focusedPath = plugin.focusedPath;
-							
-							sortedChildren = sortedChildren.filter((vEl) => {
-								const filePath = vEl.file.path;
-								
-								// Show items that match the focused path exactly
-								if (filePath === focusedPath) {
-									vEl.info.hidden = false;
-									return true;
-								}
-								
-								// Show items that are children of the focused path
-								if (filePath.startsWith(focusedPath + "/")) {
-									vEl.info.hidden = false;
-									return true;
-								}
-								
-								// Show items that are ancestors of the focused path (parent chain)
-								if (focusedPath.startsWith(filePath + "/")) {
-									vEl.info.hidden = false;
-									return true;
-								}
-								
-								// Hide everything else
-								vEl.info.hidden = true;
-								return false;
-							});
-						} else {
-							// Ensure all items are visible when not in focus mode
+						// DON'T do anything in focus mode - let refreshFileExplorerVisibility handle it
+						// This ensures all items exist in the DOM
+						if (!plugin.isFocus) {
+							// Only when NOT in focus mode, ensure all items are visible
 							sortedChildren.forEach((vEl) => {
 								vEl.info.hidden = false;
 							});
 						}
+						// When in focus mode, do NOTHING here - refreshFileExplorerVisibility will handle visibility
 
 						return sortedChildren;
 					};

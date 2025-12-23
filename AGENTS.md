@@ -57,6 +57,8 @@ Applicability: Plugin
 
 - `.ref/plugins/obsidian-simple-focus/` - Original Simple Focus plugin (reference for original implementation)
 - `.ref/plugins/obsidian-ui-tweaker/` - UI Tweaker plugin (reference for SettingGroup pattern and settings UI patterns)
+- `.ref/plugins/obsidian-file-explorer-plus/` - File Explorer++ plugin (reference for file explorer filtering and hiding patterns)
+- `.ref/plugins/obsidian-folder-focus-mode/` - Folder Focus Mode plugin (reference for folder focus functionality)
 
 ### Overrides (Optional)
 
