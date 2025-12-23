@@ -2,6 +2,8 @@
 
 Focus on a specific file or folder in the file explorer. Fork of the [Simple Focus plugin](https://github.com/linqing24/obsidian-simple-focus) plugin.
 
+![explorer-focus-preview](https://github.com/user-attachments/assets/c5621063-c4e6-49a0-9eae-ed0dba71bbc2)
+
 ## Made for Vault CMS
 
 Part of the [Vault CMS](https://github.com/davidvkimball/vault-cms) project.
