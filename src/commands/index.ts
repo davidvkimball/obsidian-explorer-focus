@@ -39,9 +39,9 @@ export function registerCommands(plugin: ExplorerFocusPlugin): void {
 					item
 						.setTitle(plugin.isFocus ? plugin.lang.exitFocus : plugin.lang.focus)
 						.setIcon(plugin.isFocus ? "log-out" : "focus")
-						.onClick(async () => {
-							plugin.toggleFocus(file?.path);
-						});
+					.onClick(() => {
+						plugin.toggleFocus(file?.path);
+					});
 				});
 			})
 		);

@@ -3,7 +3,7 @@ const lang = {
   enterFocus : "Enter focus",
   exitFocus: "Exit focus",
   toggleFocus: "Toggle focus",
-  settings: "Explorer Focus Settings",
+  settings: "Explorer focus settings",
   showRightClickMenu: "Show right-click menu option",
   showFileExplorerIcon: "Show file explorer icon",
   focusLevel: "Command focus level",
