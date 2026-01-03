@@ -17,7 +17,7 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		// First group (no heading)
-		const generalGroup = createSettingsGroup(containerEl);
+		const generalGroup = createSettingsGroup(containerEl, undefined, 'explorer-focus');
 
 		generalGroup.addSetting((setting) => {
 			setting
