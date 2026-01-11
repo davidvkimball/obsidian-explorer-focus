@@ -56,8 +56,6 @@ export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 
 	// Patch the prototype only once (affects all instances)
 	if (!prototypePatched) {
-		const leaf = plugin.app.workspace.getLeaf(true);
-
 		plugin.register(
 			around(Object.getPrototypeOf(fileExplorer), {
 				getSortedFolderItems(old: GetSortedFolderItemsFunction) {
@@ -106,7 +104,6 @@ export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 			}),
 		);
 
-		leaf.detach();
 		prototypePatched = true;
 	}
 
