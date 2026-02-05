@@ -1,5 +1,4 @@
 import { App, Plugin, PluginManifest } from "obsidian";
-import langs, { Lang } from '../lang';
 import { ExplorerFocusSettings, DEFAULT_SETTINGS } from './types';
 import { ExplorerFocusSettingTab } from './ui/settings-tab';
 import { registerCommands } from './commands';
@@ -10,15 +9,11 @@ import { getFocusPath } from './utils/focus';
 export class ExplorerFocusPlugin extends Plugin {
 	isFocus: boolean;
 	focusedPath: string | null;
-	lang: Lang;
 	settings!: ExplorerFocusSettings;
 	fileExplorerIcon: HTMLElement | null;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
-		const obsidianLangName = window.localStorage.getItem('language');
-		const langName = obsidianLangName === 'zh' ? 'zh' : 'en';
-		this.lang = langs[langName];
 		this.isFocus = false;
 		this.focusedPath = null;
 		this.fileExplorerIcon = null;
@@ -131,50 +126,103 @@ export class ExplorerFocusPlugin extends Plugin {
 			return;
 		}
 
-		// Manually update visibility of all file items in the DOM
-		Object.values(fileExplorer.fileItems).forEach((vEl) => {
-			if (!vEl || !vEl.el) {
-				return;
-			}
-
-			const filePath = vEl.file.path;
-			let shouldShow = true;
-
-			if (this.isFocus && this.focusedPath) {
-				const focusedPath = this.focusedPath;
-				
-				// Show items that match the focused path exactly
-				if (filePath === focusedPath) {
-					shouldShow = true;
+		// When exiting focus mode, the patch handles visibility reset via requestSort.
+		// We only need to clear any stale hidden attributes.
+		if (!this.isFocus || !this.focusedPath) {
+			Object.values(fileExplorer.fileItems).forEach((vEl) => {
+				if (!vEl?.el) return;
+				// Only update if currently marked hidden to minimize DOM operations
+				if (vEl.el.hasAttribute('data-explorer-focus-hidden')) {
+					if (vEl.info) vEl.info.hidden = false;
+					vEl.el.setCssProps({ display: '' });
+					vEl.el.removeAttribute('data-explorer-focus-hidden');
 				}
-				// Show items that are children of the focused path
-				else if (filePath.startsWith(focusedPath + "/")) {
-					shouldShow = true;
-				}
-				// Show items that are ancestors of the focused path (parent chain)
-				else if (focusedPath.startsWith(filePath + "/")) {
-					shouldShow = true;
-				}
-				// Hide everything else
-				else {
-					shouldShow = false;
-				}
-			}
+			});
+			return;
+		}
 
-			// Update the hidden state in the virtual element
-			if (vEl.info) {
-				vEl.info.hidden = !shouldShow;
-			}
+		const focusedPath = this.focusedPath;
 
-			// Also directly update the DOM element visibility
-			if (shouldShow) {
-				vEl.el.setCssProps({ display: '' });
-				vEl.el.removeAttribute('data-explorer-focus-hidden');
+		// Pre-compute ancestor paths as a Set for O(1) lookup
+		const ancestorPaths = new Set<string>();
+		const pathParts = focusedPath.split('/');
+		for (let i = 1; i < pathParts.length; i++) {
+			ancestorPaths.add(pathParts.slice(0, i).join('/'));
+		}
+
+		// Group items by their top-level folder for efficient subtree skipping
+		const topLevelFolders = new Map<string, string[]>();
+		const rootItems: string[] = [];
+
+		for (const path of Object.keys(fileExplorer.fileItems)) {
+			const firstSlash = path.indexOf('/');
+			if (firstSlash === -1) {
+				rootItems.push(path);
 			} else {
-				vEl.el.setCssProps({ display: 'none' });
-				vEl.el.setAttribute('data-explorer-focus-hidden', 'true');
+				const topLevel = path.substring(0, firstSlash);
+				if (!topLevelFolders.has(topLevel)) {
+					topLevelFolders.set(topLevel, []);
+				}
+				topLevelFolders.get(topLevel)!.push(path);
 			}
-		});
+		}
+
+		// Determine which top-level folders need full processing
+		const focusedTopLevel = focusedPath.split('/')[0];
+
+		// Process root-level items
+		for (const path of rootItems) {
+			const vEl = fileExplorer.fileItems[path];
+			if (!vEl?.el) continue;
+
+			const shouldShow = path === focusedPath ||
+				focusedPath.startsWith(path + '/') ||
+				path.startsWith(focusedPath + '/');
+			this.updateItemVisibility(vEl, shouldShow);
+		}
+
+		// Process each top-level folder
+		for (const [topLevel, paths] of topLevelFolders) {
+			// Check if this top-level folder needs detailed processing
+			const isInFocusPath = topLevel === focusedTopLevel ||
+				ancestorPaths.has(topLevel) ||
+				focusedPath === topLevel;
+
+			if (!isInFocusPath) {
+				// This entire subtree should be hidden - batch hide all items
+				for (const path of paths) {
+					const vEl = fileExplorer.fileItems[path];
+					if (!vEl?.el) continue;
+					this.updateItemVisibility(vEl, false);
+				}
+			} else {
+				// This subtree needs individual evaluation
+				for (const path of paths) {
+					const vEl = fileExplorer.fileItems[path];
+					if (!vEl?.el) continue;
+
+					const shouldShow = path === focusedPath ||
+						path.startsWith(focusedPath + '/') ||
+						ancestorPaths.has(path);
+					this.updateItemVisibility(vEl, shouldShow);
+				}
+			}
+		}
+	}
+
+	private updateItemVisibility(vEl: { info?: { hidden: boolean }; el: HTMLElement }, shouldShow: boolean): void {
+		const currentlyHidden = vEl.el.hasAttribute('data-explorer-focus-hidden');
+
+		// Only update DOM if state actually changes
+		if (shouldShow && currentlyHidden) {
+			if (vEl.info) vEl.info.hidden = false;
+			vEl.el.setCssProps({ display: '' });
+			vEl.el.removeAttribute('data-explorer-focus-hidden');
+		} else if (!shouldShow && !currentlyHidden) {
+			if (vEl.info) vEl.info.hidden = true;
+			vEl.el.setCssProps({ display: 'none' });
+			vEl.el.setAttribute('data-explorer-focus-hidden', 'true');
+		}
 	}
 
 	updateFocusModeClasses(): void {

@@ -90,7 +90,7 @@ export function findNavButtonsContainer(fileExplorerView: HTMLElement): HTMLElem
 export function createFileExplorerIcon(plugin: ExplorerFocusPlugin): HTMLElement {
 	const icon = document.createElement('div');
 	icon.className = 'clickable-icon nav-action-button';
-	icon.setAttribute('aria-label', plugin.lang.toggleFocus);
+	icon.setAttribute('aria-label', "Toggle focus");
 
 	// Create the focus icon SVG
 	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

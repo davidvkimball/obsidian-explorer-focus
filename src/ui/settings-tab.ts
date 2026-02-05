@@ -5,6 +5,7 @@ import { createSettingsGroup } from "../utils/settings-compat";
 
 export class ExplorerFocusSettingTab extends PluginSettingTab {
 	plugin: ExplorerFocusPlugin;
+	public icon = 'lucide-focus';
 
 	constructor(app: App, plugin: ExplorerFocusPlugin) {
 		super(app, plugin);
@@ -21,7 +22,7 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 
 		generalGroup.addSetting((setting) => {
 			setting
-				.setName(this.plugin.lang.showRightClickMenu)
+				.setName("Show right-click menu option")
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.showRightClickMenu)
 					.onChange(async (value) => {
@@ -32,7 +33,7 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 
 		generalGroup.addSetting((setting) => {
 			setting
-				.setName(this.plugin.lang.showFileExplorerIcon)
+				.setName("Show file explorer icon")
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.showFileExplorerIcon)
 					.onChange(async (value) => {
@@ -44,14 +45,14 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 
 		generalGroup.addSetting((setting) => {
 			setting
-				.setName(this.plugin.lang.focusLevel)
-				.setDesc(this.plugin.lang.focusLevelDesc)
+				.setName("Command focus level")
+				.setDesc("Determines what to focus when using the toggle command or file explorer icon. Right-click menu always focuses the clicked file/folder.")
 				.addDropdown(dropdown => dropdown
-					.addOption('file', this.plugin.lang.focusLevelFile)
-					.addOption('parent', this.plugin.lang.focusLevelParent)
-					.addOption('grandparent', this.plugin.lang.focusLevelGrandparent)
-					.addOption('greatgrandparent', this.plugin.lang.focusLevelGreatGrandparent)
-					.addOption('custom', this.plugin.lang.focusLevelCustom)
+					.addOption('file', "Current file only")
+					.addOption('parent', "Parent folder")
+					.addOption('grandparent', "Grandparent folder")
+					.addOption('greatgrandparent', "Great grandparent folder")
+					.addOption('custom', "Specific folder")
 					.setValue(this.plugin.settings.focusLevel)
 					.onChange(async (value: string) => {
 						this.plugin.settings.focusLevel = value as 'file' | 'parent' | 'grandparent' | 'greatgrandparent' | 'custom';
@@ -73,8 +74,8 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 		if (this.plugin.settings.focusLevel === 'custom') {
 			generalGroup.addSetting((setting) => {
 				setting
-					.setName(this.plugin.lang.customFolderPath)
-					.setDesc(this.plugin.lang.customFolderPathDesc)
+					.setName("Custom folder path")
+					.setDesc("Enter a folder path (folder/subfolder). This folder will be focused regardless of which file is open.")
 					.addText(text => text
 						.setPlaceholder('Folder/subfolder')
 						.setValue(this.plugin.settings.customFolderPath)

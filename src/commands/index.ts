@@ -5,7 +5,7 @@ export function registerCommands(plugin: ExplorerFocusPlugin): void {
 	// Toggle focus command
 	plugin.addCommand({
 		id: "toggle",
-		name: plugin.lang.toggleFocus,
+		name: "Toggle focus",
 		callback: () => {
 			if (plugin.isFocus) {
 				plugin.exitFocus();
@@ -37,7 +37,7 @@ export function registerCommands(plugin: ExplorerFocusPlugin): void {
 
 				menu.addItem((item) => {
 					item
-						.setTitle(plugin.isFocus ? plugin.lang.exitFocus : plugin.lang.focus)
+						.setTitle(plugin.isFocus ? "Exit focus" : "Focus")
 						.setIcon(plugin.isFocus ? "log-out" : "focus")
 					.onClick(() => {
 						plugin.toggleFocus(file?.path);
