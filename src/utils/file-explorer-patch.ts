@@ -1,4 +1,4 @@
-import { Notice, View, TAbstractFile } from "obsidian";
+import { Notice, View, TAbstractFile, Platform } from "obsidian";
 import { around } from "monkey-around";
 import { ExplorerFocusPlugin } from "../main";
 import "../types.d";
@@ -55,6 +55,13 @@ export function isPatchingFailed(): boolean {
 export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 	// If patching previously failed, don't retry - rely on CSS fallback
 	if (patchingFailed) {
+		return;
+	}
+
+	// For mobile, we explicitly skip prototype patching as it often fails
+	// and rely on our robust DOM-based fallback implemented in main.ts
+	if (Platform.isMobile) {
+		patchingFailed = true; // Set to true to avoid retries, but don't show notice
 		return;
 	}
 
