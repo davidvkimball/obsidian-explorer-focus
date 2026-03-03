@@ -20,34 +20,34 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 		// First group (no heading)
 		const generalGroup = new SettingGroup(containerEl);
 
-		generalGroup.addSetting((setting: any) => {
+		generalGroup.addSetting(setting => {
 			setting
 				.setName("Show right-click menu option")
-				.addToggle((toggle: any) => toggle
+				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.showRightClickMenu)
-					.onChange(async (value: any) => {
+					.onChange(async value => {
 						this.plugin.settings.showRightClickMenu = value;
 						await this.plugin.saveSettings();
 					}));
 		});
 
-		generalGroup.addSetting((setting: any) => {
+		generalGroup.addSetting(setting => {
 			setting
 				.setName("Show file explorer icon")
-				.addToggle((toggle: any) => toggle
+				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.showFileExplorerIcon)
-					.onChange(async (value: any) => {
+					.onChange(async value => {
 						this.plugin.settings.showFileExplorerIcon = value;
 						await this.plugin.saveSettings();
 						this.plugin.updateFileExplorerIcon();
 					}));
 		});
 
-		generalGroup.addSetting((setting: any) => {
+		generalGroup.addSetting(setting => {
 			setting
 				.setName("Command focus level")
 				.setDesc("Determines what to focus when using the toggle command or file explorer icon. Right-click menu always focuses the clicked file/folder.")
-				.addDropdown((dropdown: any) => dropdown
+				.addDropdown(dropdown => dropdown
 					.addOption('file', "Current file only")
 					.addOption('parent', "Parent folder")
 					.addOption('grandparent', "Grandparent folder")
@@ -72,14 +72,14 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 
 		// Add custom folder path input that only shows when custom is selected
 		if (this.plugin.settings.focusLevel === 'custom') {
-			generalGroup.addSetting((setting: any) => {
+			generalGroup.addSetting(setting => {
 				setting
 					.setName("Custom folder path")
 					.setDesc("Enter a folder path (folder/subfolder). This folder will be focused regardless of which file is open.")
-					.addText((text: any) => text
+					.addText(text => text
 						.setPlaceholder('Folder/subfolder')
 						.setValue(this.plugin.settings.customFolderPath)
-						.onChange(async (value: any) => {
+						.onChange(async value => {
 							this.plugin.settings.customFolderPath = value;
 							await this.plugin.saveSettings();
 						}));
