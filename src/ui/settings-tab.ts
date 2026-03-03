@@ -1,7 +1,7 @@
-import { App, PluginSettingTab } from "obsidian";
+import { App, PluginSettingTab , SettingGroup} from "obsidian";
 import { ExplorerFocusPlugin } from "../main";
 import { getAllFileExplorers } from "../utils/file-explorer-patch";
-import { createSettingsGroup } from "../utils/settings-compat";
+
 
 export class ExplorerFocusSettingTab extends PluginSettingTab {
 	plugin: ExplorerFocusPlugin;
@@ -18,36 +18,36 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		// First group (no heading)
-		const generalGroup = createSettingsGroup(containerEl, undefined, 'explorer-focus');
+		const generalGroup = new SettingGroup(containerEl);
 
-		generalGroup.addSetting((setting) => {
+		generalGroup.addSetting((setting: any) => {
 			setting
 				.setName("Show right-click menu option")
-				.addToggle(toggle => toggle
+				.addToggle((toggle: any) => toggle
 					.setValue(this.plugin.settings.showRightClickMenu)
-					.onChange(async (value) => {
+					.onChange(async (value: any) => {
 						this.plugin.settings.showRightClickMenu = value;
 						await this.plugin.saveSettings();
 					}));
 		});
 
-		generalGroup.addSetting((setting) => {
+		generalGroup.addSetting((setting: any) => {
 			setting
 				.setName("Show file explorer icon")
-				.addToggle(toggle => toggle
+				.addToggle((toggle: any) => toggle
 					.setValue(this.plugin.settings.showFileExplorerIcon)
-					.onChange(async (value) => {
+					.onChange(async (value: any) => {
 						this.plugin.settings.showFileExplorerIcon = value;
 						await this.plugin.saveSettings();
 						this.plugin.updateFileExplorerIcon();
 					}));
 		});
 
-		generalGroup.addSetting((setting) => {
+		generalGroup.addSetting((setting: any) => {
 			setting
 				.setName("Command focus level")
 				.setDesc("Determines what to focus when using the toggle command or file explorer icon. Right-click menu always focuses the clicked file/folder.")
-				.addDropdown(dropdown => dropdown
+				.addDropdown((dropdown: any) => dropdown
 					.addOption('file', "Current file only")
 					.addOption('parent', "Parent folder")
 					.addOption('grandparent', "Grandparent folder")
@@ -72,14 +72,14 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 
 		// Add custom folder path input that only shows when custom is selected
 		if (this.plugin.settings.focusLevel === 'custom') {
-			generalGroup.addSetting((setting) => {
+			generalGroup.addSetting((setting: any) => {
 				setting
 					.setName("Custom folder path")
 					.setDesc("Enter a folder path (folder/subfolder). This folder will be focused regardless of which file is open.")
-					.addText(text => text
+					.addText((text: any) => text
 						.setPlaceholder('Folder/subfolder')
 						.setValue(this.plugin.settings.customFolderPath)
-						.onChange(async (value) => {
+						.onChange(async (value: any) => {
 							this.plugin.settings.customFolderPath = value;
 							await this.plugin.saveSettings();
 						}));
