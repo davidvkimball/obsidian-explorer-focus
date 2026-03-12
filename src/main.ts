@@ -33,11 +33,13 @@ export class ExplorerFocusPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			this.patchAllFileExplorers();
 			this.updateFocusModeClasses();
+			this.updateAutoHideStyles();
 		});
 
 		this.app.workspace.on("layout-change", () => {
 			this.patchAllFileExplorers();
 			this.updateFocusModeClasses();
+			this.updateAutoHideStyles();
 		});
 	}
 
@@ -100,10 +102,10 @@ export class ExplorerFocusPlugin extends Plugin {
 
 		// Update icon if it exists
 		this.updateFileExplorerIcon();
-		
+
 		// Update CSS classes
 		this.updateFocusModeClasses();
-		
+
 		// Trigger file explorer refresh on all file explorer instances
 		const fileExplorers = getAllFileExplorers(this);
 		fileExplorers.forEach(fileExplorer => {
@@ -111,13 +113,15 @@ export class ExplorerFocusPlugin extends Plugin {
 				fileExplorer.requestSort();
 			}
 		});
-		
+
 		// Force refresh by manually updating visibility (especially important on mobile)
 		// Use setTimeout to ensure DOM is ready after requestSort
 		setTimeout(() => {
 			fileExplorers.forEach(fileExplorer => {
 				this.refreshFileExplorerVisibility(fileExplorer);
 			});
+			// Re-apply auto-hide after focus mode clears visibility
+			this.updateAutoHideStyles();
 		}, 0);
 	}
 
@@ -374,6 +378,33 @@ export class ExplorerFocusPlugin extends Plugin {
 		} else {
 			this.fileExplorerIcon.removeClass('is-active');
 		}
+	}
+
+	updateAutoHideStyles(): void {
+		const paths = new Set(
+			(this.settings.autoHidePaths ?? [])
+				.map(p => p.trim())
+				.filter(p => p.length > 0)
+		);
+
+		const fileExplorers = getAllFileExplorers(this);
+		fileExplorers.forEach(fileExplorer => {
+			if (!fileExplorer?.fileItems) return;
+
+			for (const [filePath, vEl] of Object.entries(fileExplorer.fileItems)) {
+				if (!vEl?.el) continue;
+				const shouldHide = paths.has(filePath);
+				const isHidden = vEl.el.hasAttribute('data-explorer-focus-auto-hidden');
+
+				if (shouldHide && !isHidden) {
+					vEl.el.setCssProps({ display: 'none' });
+					vEl.el.setAttribute('data-explorer-focus-auto-hidden', 'true');
+				} else if (!shouldHide && isHidden) {
+					vEl.el.setCssProps({ display: '' });
+					vEl.el.removeAttribute('data-explorer-focus-auto-hidden');
+				}
+			}
+		});
 	}
 
 	onunload() {

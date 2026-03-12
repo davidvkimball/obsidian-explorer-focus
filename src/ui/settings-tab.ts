@@ -1,6 +1,7 @@
-import { App, PluginSettingTab , SettingGroup} from "obsidian";
+import { App, PluginSettingTab, SettingGroup } from "obsidian";
 import { ExplorerFocusPlugin } from "../main";
 import { getAllFileExplorers } from "../utils/file-explorer-patch";
+import { FolderSuggest } from "./folder-suggest";
 
 
 export class ExplorerFocusSettingTab extends PluginSettingTab {
@@ -76,15 +77,70 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 				setting
 					.setName("Custom folder path")
 					.setDesc("Enter a folder path (folder/subfolder). This folder will be focused regardless of which file is open.")
-					.addText(text => text
-						.setPlaceholder('Folder/subfolder')
-						.setValue(this.plugin.settings.customFolderPath)
-						.onChange(async value => {
-							this.plugin.settings.customFolderPath = value;
-							await this.plugin.saveSettings();
-						}));
+					.addText(text => {
+						new FolderSuggest(this.app, text.inputEl);
+						text
+							.setPlaceholder('Folder/subfolder')
+							.setValue(this.plugin.settings.customFolderPath)
+							.onChange(async value => {
+								this.plugin.settings.customFolderPath = value;
+								await this.plugin.saveSettings();
+							});
+					});
 			});
 		}
+
+		// Auto-hide folders section
+		const autoHideGroup = new SettingGroup(containerEl)
+			.setHeading("Auto-hide folders");
+
+		autoHideGroup.addSetting(setting => {
+			setting
+				.setName("Hidden folders")
+				.setDesc("These folders are always hidden from the file explorer. Useful for hiding build artifacts like node_modules or dist.");
+		});
+
+		const autoHidePaths = this.plugin.settings.autoHidePaths ?? [];
+
+		autoHidePaths.forEach((path, index) => {
+			autoHideGroup.addSetting(setting => {
+				setting
+					.addText(text => {
+						new FolderSuggest(this.app, text.inputEl);
+						text
+							.setValue(path)
+							.setPlaceholder("Folder name")
+							.onChange(async value => {
+								this.plugin.settings.autoHidePaths[index] = value;
+								await this.plugin.saveSettings();
+								this.plugin.updateAutoHideStyles();
+							});
+					})
+					.addExtraButton(button => button
+						.setIcon("trash-2")
+						.setTooltip("Remove")
+						.onClick(async () => {
+							this.plugin.settings.autoHidePaths.splice(index, 1);
+							await this.plugin.saveSettings();
+							this.plugin.updateAutoHideStyles();
+							this.display();
+						}));
+			});
+		});
+
+		autoHideGroup.addSetting(setting => {
+			setting
+				.addButton(button => button
+					.setButtonText("Add folder")
+					.onClick(async () => {
+						if (!this.plugin.settings.autoHidePaths) {
+							this.plugin.settings.autoHidePaths = [];
+						}
+						this.plugin.settings.autoHidePaths.push("");
+						await this.plugin.saveSettings();
+						this.display();
+					}));
+		});
 
 	}
 }
