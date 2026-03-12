@@ -2,6 +2,7 @@ import { App, PluginSettingTab, SettingGroup } from "obsidian";
 import { ExplorerFocusPlugin } from "../main";
 import { getAllFileExplorers } from "../utils/file-explorer-patch";
 import { FolderSuggest } from "./folder-suggest";
+import { AutoHideModal } from "./auto-hide-modal";
 
 
 export class ExplorerFocusSettingTab extends PluginSettingTab {
@@ -95,50 +96,27 @@ export class ExplorerFocusSettingTab extends PluginSettingTab {
 			.setHeading("Auto-hide folders");
 
 		autoHideGroup.addSetting(setting => {
+			const autoHidePaths = (this.plugin.settings.autoHidePaths ?? []).filter(p => p.trim().length > 0);
+
+			const descFragment = document.createDocumentFragment();
+			descFragment.appendText("These folders are always hidden from the file explorer.");
+
+			if (autoHidePaths.length > 0) {
+				const list = descFragment.createEl("ul");
+				autoHidePaths.forEach(p => {
+					list.createEl("li", { text: p });
+				});
+			}
+
 			setting
 				.setName("Hidden folders")
-				.setDesc("These folders are always hidden from the file explorer. Useful for hiding build artifacts like node_modules or dist.");
-		});
-
-		const autoHidePaths = this.plugin.settings.autoHidePaths ?? [];
-
-		autoHidePaths.forEach((path, index) => {
-			autoHideGroup.addSetting(setting => {
-				setting
-					.addText(text => {
-						new FolderSuggest(this.app, text.inputEl);
-						text
-							.setValue(path)
-							.setPlaceholder("Folder name")
-							.onChange(async value => {
-								this.plugin.settings.autoHidePaths[index] = value;
-								await this.plugin.saveSettings();
-								this.plugin.updateAutoHideStyles();
-							});
-					})
-					.addExtraButton(button => button
-						.setIcon("trash-2")
-						.setTooltip("Remove")
-						.onClick(async () => {
-							this.plugin.settings.autoHidePaths.splice(index, 1);
-							await this.plugin.saveSettings();
-							this.plugin.updateAutoHideStyles();
-							this.display();
-						}));
-			});
-		});
-
-		autoHideGroup.addSetting(setting => {
-			setting
+				.setDesc(descFragment)
 				.addButton(button => button
-					.setButtonText("Add folder")
-					.onClick(async () => {
-						if (!this.plugin.settings.autoHidePaths) {
-							this.plugin.settings.autoHidePaths = [];
-						}
-						this.plugin.settings.autoHidePaths.push("");
-						await this.plugin.saveSettings();
-						this.display();
+					.setButtonText("Manage")
+					.onClick(() => {
+						new AutoHideModal(this.app, this.plugin, () => {
+							this.display();
+						}).open();
 					}));
 		});
 
