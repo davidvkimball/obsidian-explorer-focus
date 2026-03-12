@@ -71,6 +71,7 @@ export class AutoHideModal extends Modal {
 				}));
 
 		// Save / Cancel buttons using native modal-button-container
+		this.modalEl.querySelector('.modal-button-container')?.remove();
 		const buttonContainer = this.modalEl.createDiv({ cls: "modal-button-container" });
 
 		const saveBtn = buttonContainer.createEl("button", {
