@@ -1,4 +1,4 @@
-import { Notice, View, TAbstractFile, Platform } from "obsidian";
+import { Notice, View, TAbstractFile, Platform, WorkspaceLeaf } from "obsidian";
 import { around } from "monkey-around";
 import { ExplorerFocusPlugin } from "../main";
 import "../types.d";
@@ -158,13 +158,28 @@ export function patchFileExplorer(plugin: ExplorerFocusPlugin): void {
 	fileExplorer.fileExplorerPlusPatched = true;
 }
 
+/**
+ * A file explorer leaf that has never been visible holds a deferred placeholder
+ * rather than the real view, so it has none of the methods this plugin patches.
+ * Skipping those leaves means startup with the explorer hidden is treated as
+ * "not ready yet" instead of a patch failure. The layout-change handler patches
+ * for real as soon as the explorer is actually shown.
+ */
+function isReady(leaf: WorkspaceLeaf): boolean {
+	return !leaf.isDeferred;
+}
+
 export function getFileExplorer(plugin: ExplorerFocusPlugin): FileExplorerView | undefined {
-	const fileExplorerContainer = plugin.app.workspace.getLeavesOfType("file-explorer")?.first();
-	return fileExplorerContainer?.view as FileExplorerView;
+	const fileExplorerContainer = plugin.app.workspace
+		.getLeavesOfType("file-explorer")
+		.find(isReady);
+	return fileExplorerContainer?.view as FileExplorerView | undefined;
 }
 
 export function getAllFileExplorers(plugin: ExplorerFocusPlugin): FileExplorerView[] {
-	const fileExplorerLeaves = plugin.app.workspace.getLeavesOfType("file-explorer");
+	const fileExplorerLeaves = plugin.app.workspace
+		.getLeavesOfType("file-explorer")
+		.filter(isReady);
 	return fileExplorerLeaves.map(leaf => leaf.view as FileExplorerView);
 }
 
